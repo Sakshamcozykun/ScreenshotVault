@@ -1,0 +1,206 @@
+<!-- src/ScreenshotVault.App/Views/GalleryView.xaml -->
+<Page
+    x:Class="ScreenshotVault.App.Views.GalleryView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="using:ScreenshotVault.Core.Models"
+    Background="{ThemeResource AppBackgroundBrush}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>   <!-- Sidebar: categories -->
+            <ColumnDefinition Width="*"/>     <!-- Main: screenshot grid -->
+        </Grid.ColumnDefinitions>
+
+        <!-- ── Sidebar ──────────────────────────────────────────────────── -->
+        <Border Grid.Column="0"
+                Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="0,0,1,0"
+                Padding="8">
+            <StackPanel Spacing="4">
+                <TextBlock Text="CATEGORIES"
+                           FontFamily="{ThemeResource AppFontFamily}"
+                           FontSize="{ThemeResource AppFontSizeCaption}"
+                           FontWeight="SemiBold"
+                           Foreground="{ThemeResource AppTextSecondaryBrush}"
+                           Margin="4,8,4,4"/>
+
+                <!-- All button -->
+                <Button Content="📋 All"
+                        Style="{ThemeResource AppButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Click="OnFilterAll"/>
+
+                <!-- Dynamic category list -->
+                <ItemsControl x:Name="CategoryList"
+                              ItemsSource="{x:Bind ViewModel.Categories, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:Category">
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        HorizontalAlignment="Stretch"
+                                        Style="{ThemeResource AppButtonStyle}"
+                                        Tag="{x:Bind Name}"
+                                        Click="OnFilterCategory">
+                                    <TextBlock>
+                                        <Run Text="📁 "/>
+                                        <Run Text="{x:Bind Name}"/>
+                                    </TextBlock>
+                                </Button>
+                                <!-- Bulk delete — only for non-system categories -->
+                                <Button Grid.Column="1"
+                                        Content="🗑"
+                                        Visibility="{x:Bind IsSystem, Converter={StaticResource BoolToCollapsed}}"
+                                        Tag="{x:Bind Name}"
+                                        Click="OnDeleteCategory"
+                                        ToolTipService.ToolTip="Delete all in this category"
+                                        Padding="6,3"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- ── Main Grid ────────────────────────────────────────────────── -->
+        <Grid Grid.Column="1" Padding="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header row -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <TextBlock x:Name="TxtCategoryHeading"
+                           Text="{x:Bind ViewModel.ActiveCategory, Mode=OneWay}"
+                           FontFamily="{ThemeResource AppFontFamily}"
+                           FontSize="{ThemeResource AppFontSizeTitle}"
+                           FontWeight="SemiBold"
+                           Foreground="{ThemeResource AppTextPrimaryBrush}"/>
+            </Grid>
+
+            <!-- Screenshot grid -->
+            <GridView Grid.Row="1"
+                      x:Name="ScreenshotGrid"
+                      ItemsSource="{x:Bind ViewModel.Screenshots, Mode=OneWay}"
+                      SelectionMode="None"
+                      ItemClick="OnScreenshotClick"
+                      IsItemClickEnabled="True">
+                <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Screenshot">
+                        <Border Style="{ThemeResource AppCardStyle}"
+                                Width="200" Height="160"
+                                Margin="4">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Image Grid.Row="0"
+                                       Source="{x:Bind FilePath}"
+                                       Stretch="UniformToFill"
+                                       VerticalAlignment="Top"/>
+                                <StackPanel Grid.Row="1"
+                                            Background="{ThemeResource AppSurfaceBrush}"
+                                            Padding="6,4">
+                                    <TextBlock Text="{x:Bind Context.WindowTitle}"
+                                               FontFamily="{ThemeResource AppFontFamily}"
+                                               FontSize="{ThemeResource AppFontSizeCaption}"
+                                               Foreground="{ThemeResource AppTextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxLines="1"/>
+                                    <TextBlock Text="{x:Bind CapturedAt}"
+                                               FontFamily="{ThemeResource AppFontFamily}"
+                                               FontSize="{ThemeResource AppFontSizeCaption}"
+                                               Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+
+        </Grid>
+
+        <!-- ── Detail Flyout (Sticky Note style) ───────────────────────── -->
+        <Border x:Name="DetailPanel"
+                Grid.Column="1"
+                Visibility="{x:Bind ViewModel.IsDetailOpen, Mode=OneWay,
+                             Converter={StaticResource BoolToVisible}}"
+                Background="{ThemeResource AppSurfaceRaisedBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="{ThemeResource AppCornerRadius}"
+                Padding="20"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Stretch"
+                Width="360">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="12">
+                    <Button Content="✕ Close"
+                            Style="{ThemeResource AppButtonStyle}"
+                            HorizontalAlignment="Right"
+                            Click="OnCloseDetail"/>
+                    <Image x:Name="DetailImage"
+                           Source="{x:Bind ViewModel.SelectedScreenshot.FilePath, Mode=OneWay}"
+                           Stretch="Uniform"
+                           MaxHeight="240"/>
+                    <TextBlock Text="Window"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeCaption}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.SelectedScreenshot.Context.WindowTitle, Mode=OneWay}"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeBody}"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="Process"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeCaption}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.SelectedScreenshot.Context.ProcessName, Mode=OneWay}"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeBody}"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"/>
+                    <TextBlock Text="URL"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeCaption}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                    <HyperlinkButton
+                        Content="{x:Bind ViewModel.SelectedScreenshot.Context.Url, Mode=OneWay}"
+                        NavigateUri="{x:Bind ViewModel.SelectedScreenshot.Context.Url, Mode=OneWay}"
+                        FontFamily="{ThemeResource AppFontFamily}"
+                        FontSize="{ThemeResource AppFontSizeBody}"
+                        Foreground="{ThemeResource AppAccentBrush}"/>
+                    <TextBlock Text="Captured"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeCaption}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.SelectedScreenshot.CapturedAt, Mode=OneWay}"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeBody}"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"/>
+                    <TextBlock Text="Category"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeCaption}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                    <TextBlock Text="{x:Bind ViewModel.SelectedScreenshot.Category, Mode=OneWay}"
+                               FontFamily="{ThemeResource AppFontFamily}"
+                               FontSize="{ThemeResource AppFontSizeBody}"
+                               Foreground="{ThemeResource AppTextPrimaryBrush}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+    </Grid>
+</Page>
