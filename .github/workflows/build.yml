@@ -3,11 +3,11 @@ name: Build ScreenshotVault
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:   # allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
     - name: Checkout
@@ -18,11 +18,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Install Windows App SDK workload
-      run: dotnet workload install microsoft-windows-sdk-buildtools
+    - name: Add NuGet source
+      run: dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org || true
 
     - name: Restore packages
-      run: dotnet restore ScreenshotVault.sln
+      run: dotnet restore ScreenshotVault.sln /p:Platform=x64
 
     - name: Build & publish self-contained exe
       run: |
@@ -30,9 +30,11 @@ jobs:
           -c Release `
           -r win-x64 `
           --self-contained true `
-          -p:Platform=x64 `
-          -p:PublishSingleFile=true `
-          -p:IncludeNativeLibrariesForSelfExtract=true `
+          /p:Platform=x64 `
+          /p:PublishSingleFile=true `
+          /p:IncludeNativeLibrariesForSelfExtract=true `
+          /p:WindowsAppSDKSelfContained=true `
+          /p:WindowsPackageType=None `
           -o ./publish
 
     - name: Upload artifact
