@@ -23,6 +23,7 @@ jobs:
         dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj 
         -c Release 
         -r win-x64 
+        -p:Platform=x64 
         --self-contained true 
         -p:WindowsPackageType=None 
         -p:UseRidGraph=true 
