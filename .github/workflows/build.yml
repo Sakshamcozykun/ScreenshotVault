@@ -2,8 +2,7 @@ name: Build ScreenshotVault
 
 on:
   push:
-    # Added 'master' just in case your default branch isn't named 'main'
-    branches: [ main, master ] 
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -20,13 +19,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Publish App
-      # dotnet publish handles restore, build, and routing files to the output folder automatically
       run: >
         dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj 
         -c Release 
         -r win-x64 
         --self-contained true 
         -p:WindowsPackageType=None 
+        -p:UseRidGraph=true 
         -o ./publish
 
     - name: Upload artifact
