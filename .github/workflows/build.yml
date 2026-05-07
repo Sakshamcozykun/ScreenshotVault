@@ -2,15 +2,13 @@ name: Build ScreenshotVault
 
 on:
   push:
-    branches: [ main ]
+    # Added 'master' just in case your default branch isn't named 'main'
+    branches: [ main, master ] 
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-
-    env:
-      Solution_Name: ScreenshotVault.sln
 
     steps:
     - name: Checkout
@@ -21,26 +19,15 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Restore packages
-      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=Release /p:Platform=x64
-
-    - name: Build with MSBuild
-      run: |
-        msbuild src\ScreenshotVault.App\ScreenshotVault.App.csproj `
-          /t:Build `
-          /p:Configuration=Release `
-          /p:Platform=x64 `
-          /p:WindowsAppSDKSelfContained=true `
-          /p:WindowsPackageType=None `
-          /p:RuntimeIdentifier=win-x64
-
-    - name: Copy output to publish folder
-      run: |
-        New-Item -ItemType Directory -Force -Path ./publish
-        Copy-Item -Path "src\ScreenshotVault.App\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\*" -Destination ./publish -Recurse
+    - name: Publish App
+      # dotnet publish handles restore, build, and routing files to the output folder automatically
+      run: >
+        dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj 
+        -c Release 
+        -r win-x64 
+        --self-contained true 
+        -p:WindowsPackageType=None 
+        -o ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
