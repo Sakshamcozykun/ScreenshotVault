@@ -13,19 +13,32 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
     - name: Restore
-      run: dotnet restore src/ScreenshotVault.App/ScreenshotVault.App.csproj /p:Platform=x64
+      run: |
+        dotnet restore src/ScreenshotVault.App/ScreenshotVault.App.csproj `
+          /p:Platform=x64 `
+          /p:RuntimeIdentifier=win-x64 `
+          /p:UseRidGraph=true
 
     - name: Publish
-      run: dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj -c Release /p:Platform=x64 -o ./publish
+      run: |
+        dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj `
+          -c Release `
+          -r win-x64 `
+          --self-contained true `
+          /p:Platform=x64 `
+          /p:UseRidGraph=true `
+          /p:WindowsPackageType=None `
+          /p:WindowsAppSDKSelfContained=true `
+          -o ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
