@@ -18,24 +18,14 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Add NuGet source
-      run: dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org || true
+    - name: Install windows workload
+      run: dotnet workload install windows
 
     - name: Restore packages
       run: dotnet restore ScreenshotVault.sln /p:Platform=x64
 
-    - name: Build & publish self-contained exe
-      run: |
-        dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj `
-          -c Release `
-          -r win-x64 `
-          --self-contained true `
-          /p:Platform=x64 `
-          /p:PublishSingleFile=true `
-          /p:IncludeNativeLibrariesForSelfExtract=true `
-          /p:WindowsAppSDKSelfContained=true `
-          /p:WindowsPackageType=None `
-          -o ./publish
+    - name: Build and publish
+      run: dotnet publish src/ScreenshotVault.App/ScreenshotVault.App.csproj -c Release -r win-x64 --self-contained true /p:Platform=x64 /p:WindowsAppSDKSelfContained=true /p:WindowsPackageType=None /p:PublishSingleFile=false -o ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
