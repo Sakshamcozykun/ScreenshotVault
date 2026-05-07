@@ -1,0 +1,120 @@
+<!-- src/ScreenshotVault.App/Views/MiscClassifyView.xaml -->
+<Page
+    x:Class="ScreenshotVault.App.Views.MiscClassifyView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="using:ScreenshotVault.Core.Models"
+    Background="{ThemeResource AppBackgroundBrush}">
+
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,8">
+            <TextBlock Text="Classify Miscellaneous"
+                       FontFamily="{ThemeResource AppFontFamily}"
+                       FontSize="{ThemeResource AppFontSizeTitle}"
+                       FontWeight="SemiBold"
+                       Foreground="{ThemeResource AppTextPrimaryBrush}"
+                       VerticalAlignment="Center"/>
+            <Border Background="{ThemeResource AppAccentBrush}"
+                    CornerRadius="10" Padding="8,2">
+                <TextBlock Text="{x:Bind ViewModel.MiscScreenshots.Count, Mode=OneWay}"
+                           FontFamily="{ThemeResource AppFontFamily}"
+                           FontSize="{ThemeResource AppFontSizeCaption}"
+                           Foreground="White"/>
+            </Border>
+        </StackPanel>
+
+        <!-- Info banner -->
+        <Border Grid.Row="1"
+                Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppAccentBrush}"
+                BorderThickness="0,0,0,2"
+                Padding="12,8"
+                Margin="0,0,0,16">
+            <TextBlock Text="💡 Classifying screenshots here teaches the app to auto-sort future captures. The more you classify, the smarter it gets."
+                       FontFamily="{ThemeResource AppFontFamily}"
+                       FontSize="{ThemeResource AppFontSizeCaption}"
+                       Foreground="{ThemeResource AppTextSecondaryBrush}"
+                       TextWrapping="Wrap"/>
+        </Border>
+
+        <!-- Screenshot list -->
+        <ListView Grid.Row="2"
+                  ItemsSource="{x:Bind ViewModel.MiscScreenshots, Mode=OneWay}">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:Screenshot">
+                    <Border Style="{ThemeResource AppCardStyle}"
+                            Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Thumbnail -->
+                            <Image Grid.Column="0"
+                                   Source="{x:Bind FilePath}"
+                                   Stretch="UniformToFill"
+                                   Height="80"
+                                   Margin="0,0,12,0"/>
+
+                            <!-- Metadata -->
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Spacing="4">
+                                <TextBlock Text="{x:Bind Context.WindowTitle}"
+                                           FontFamily="{ThemeResource AppFontFamily}"
+                                           FontSize="{ThemeResource AppFontSizeBody}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{ThemeResource AppTextPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxLines="1"/>
+                                <TextBlock Text="{x:Bind Context.ProcessName}"
+                                           FontFamily="{ThemeResource AppFontFamily}"
+                                           FontSize="{ThemeResource AppFontSizeCaption}"
+                                           Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                                <TextBlock Text="{x:Bind Context.Url}"
+                                           FontFamily="{ThemeResource AppFontFamily}"
+                                           FontSize="{ThemeResource AppFontSizeCaption}"
+                                           Foreground="{ThemeResource AppAccentBrush}"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxLines="1"/>
+                                <TextBlock Text="{x:Bind CapturedAt}"
+                                           FontFamily="{ThemeResource AppFontFamily}"
+                                           FontSize="{ThemeResource AppFontSizeCaption}"
+                                           Foreground="{ThemeResource AppTextSecondaryBrush}"/>
+                            </StackPanel>
+
+                            <!-- Category picker + action -->
+                            <StackPanel Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Spacing="8"
+                                        MinWidth="160">
+                                <ComboBox x:Name="CategoryPicker"
+                                          ItemsSource="{Binding AvailableCategories,
+                                              ElementName=PageRoot}"
+                                          PlaceholderText="Select category"
+                                          FontFamily="{ThemeResource AppFontFamily}"
+                                          FontSize="{ThemeResource AppFontSizeBody}"
+                                          HorizontalAlignment="Stretch"/>
+                                <Button Content="✓ Classify"
+                                        Style="{ThemeResource AppButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Tag="{x:Bind}"
+                                        Click="OnClassifyClick"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+    </Grid>
+</Page>
